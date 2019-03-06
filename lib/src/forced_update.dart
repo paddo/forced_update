@@ -31,14 +31,29 @@ class ForcedUpdate {
   Future<bool> shouldUpdate({bool useCache = true}) async {
     StoreInfo storeInfo = await getStoreInfo(useCache: useCache);
     String runningVersion = await getRunningVersion();
-    if (storeInfo.storeVersion.startsWith(runningVersion)) return false;
 
-    if (_updateOnChangeTo == VersionPart.any) return true;
+    RegExp versionRegex = RegExp('^(\\d+)\\.(\\d+)\\.(\\d+)');
+    Match storeVersionMatch = versionRegex.firstMatch(storeInfo.storeVersion);
+    Match runningVersionMatch = versionRegex.firstMatch(runningVersion);
 
-    RegExp storeVersionRegex =
-        RegExp(_updateOnChangeTo == VersionPart.major ? '^\d+\.' : '^\d+\.\d+');
+    int majorStoreVersion = int.parse(storeVersionMatch.group(1));
+    int majorRunningVersion = int.parse(runningVersionMatch.group(1));
+    if (majorStoreVersion > majorRunningVersion) return true;
+    if (majorStoreVersion < majorRunningVersion) return false;
 
-    if (!storeVersionRegex.hasMatch(runningVersion)) return true;
+    if (_updateOnChangeTo == VersionPart.minor ||
+        _updateOnChangeTo == VersionPart.any) {
+      int minorStoreVersion = int.parse(storeVersionMatch.group(2));
+      int minorRunningVersion = int.parse(runningVersionMatch.group(2));
+      if (minorStoreVersion > minorRunningVersion) return true;
+      if (minorStoreVersion < minorRunningVersion) return false;
+    }
+
+    if (_updateOnChangeTo == VersionPart.any) {
+      int patchStoreVersion = int.parse(storeVersionMatch.group(3));
+      int patchRunningVersion = int.parse(runningVersionMatch.group(3));
+      if (patchStoreVersion > patchRunningVersion) return true;
+    }
 
     return false;
   }
