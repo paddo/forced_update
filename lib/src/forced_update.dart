@@ -1,5 +1,6 @@
 import 'package:forced_update/src/store_info.dart';
 import 'package:forced_update/src/version_part.dart';
+import 'package:http/testing.dart';
 import 'package:package_info/package_info.dart';
 
 class ForcedUpdate {
@@ -17,7 +18,7 @@ class ForcedUpdate {
       _packageName = (await PackageInfo.fromPlatform()).packageName;
   }
 
-  Future<StoreInfo> getStoreInfo({bool useCache = true}) async {
+  Future<StoreInfo> getStoreInfo({bool useCache = false}) async {
     await _cachePackageName();
     if (!useCache || _storeInfo == null)
       _storeInfo = await StoreInfo.fromPackageName(_packageName);
@@ -28,7 +29,7 @@ class ForcedUpdate {
     return (await PackageInfo.fromPlatform()).version;
   }
 
-  Future<bool> shouldUpdate({bool useCache = true}) async {
+  Future<bool> shouldUpdate({bool useCache = false}) async {
     StoreInfo storeInfo = await getStoreInfo(useCache: useCache);
     String runningVersion = await getRunningVersion();
 

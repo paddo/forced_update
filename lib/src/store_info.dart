@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 class StoreInfo {
   static const String _playStoreVersionRegex = 'Current Version.+?>(\\d+.+?)<';
@@ -16,8 +17,12 @@ class StoreInfo {
       'https://play.google.com/store/apps/details?id=$packageName';
   static String _appStoreLookupUrl(String packageName) =>
       'http://itunes.apple.com/lookup?bundleId=$packageName';
-    
+
   StoreInfo._();
+
+  StoreInfo.mock({@required String storeUrl, @required String storeVersion})
+      : _storeUrl = storeUrl,
+        _storeVersion = storeVersion;
 
   static Future<StoreInfo> fromPackageName(String packageName) async {
     StoreInfo storeInfo = StoreInfo._();
@@ -28,6 +33,7 @@ class StoreInfo {
         ? _playStoreUrl(packageName)
         : _appStoreLookupUrl(packageName);
     http.Response storeLookupResponse = await http.get(url);
+
     RegExp versionRegex = RegExp(
         Platform.isAndroid ? _playStoreVersionRegex : _appStoreVersionRegex);
     Match match = versionRegex.firstMatch(storeLookupResponse.body);
